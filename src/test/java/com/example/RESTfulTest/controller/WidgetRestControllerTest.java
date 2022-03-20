@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.platform.commons.annotation.Testable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.ArgumentMatchers.any;
 
@@ -104,6 +106,61 @@ class WidgetRestControllerTest {
                 .andExpect(jsonPath("$.name", is("New Widget")))
                 .andExpect(jsonPath("$.description", is("This is my widget")))
                 .andExpect(jsonPath("$.version", is(1)));
+    }
+
+    @Test
+    @DisplayName("PUT /rest/widget/{id}")
+    void testUpdateWidget()throws Exception{
+
+        Widget widgetToPutReturn = new Widget(1L, "New Widget", "This is my widget", 1);
+        doReturn(Optional.of(widgetToPutReturn)).when(service).findById(1l);
+
+        // Execute the PUT request
+        mockMvc.perform(put("/rest/widget/{id}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(widgetToPutReturn)))
+
+
+                // Validate the returned fields
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.name", is("New Widget")))
+                .andExpect(jsonPath("$.description", is("This is my widget")))
+                .andExpect(jsonPath("$.version", is(1)));
+    }
+
+    @Test
+    @DisplayName("PUT /rest/proper/widget/1 - Not Found")
+    void testPutWidgetByIdNotFound() throws Exception {
+        // Setup our mocked service
+        doReturn(Optional.empty()).when(service).findById(1l);
+
+        // Execute the PUT request
+        mockMvc.perform(put("/rest/proper/widget/{id}", 1L))
+                // Validate the response code
+                .andExpect(status().is(notNullValue()));
+    }
+
+    @Test
+    @DisplayName("GET /rest/widget/{1}")
+    void testGetWidgetById() throws Exception{
+        Widget widget = new Widget(1L, "New Widget", "This is my widget", 1);
+        doReturn(Optional.of(widget)).when(service).findById(1l);
+
+        mockMvc.perform(get("/rest/widget/{id}",1L))
+                // Validate the response code and content type
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+
+                // Validate headers
+                .andExpect(header().string(HttpHeaders.LOCATION, "/rest/widget/1"))
+                .andExpect(header().string(HttpHeaders.ETAG, "\"1\""))
+
+                // Validate the returned fields
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.name", is("New Widget")))
+                .andExpect(jsonPath("$.description", is("This is my widget")))
+                .andExpect(jsonPath("$.version", is(1)));
+
     }
 
 
