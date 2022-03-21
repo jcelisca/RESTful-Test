@@ -14,6 +14,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import java.util.Optional;
 
@@ -116,9 +117,11 @@ class WidgetRestControllerTest {
         doReturn(Optional.of(widgetToPutReturn)).when(service).findById(1l);
 
         // Execute the PUT request
-        mockMvc.perform(put("/rest/widget/{id}", 1L)
+        mockMvc.perform(put("/rest/widget/{id}", 1L,1)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(widgetToPutReturn)))
+
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
 
 
                 // Validate the returned fields
