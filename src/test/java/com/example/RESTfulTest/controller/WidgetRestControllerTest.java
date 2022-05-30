@@ -110,15 +110,20 @@ class WidgetRestControllerTest {
     }
 
     @Test
-    @DisplayName("PUT /rest/widget/{id}")
+    @DisplayName("PUT /rest/proper/widget/{id}")
     void testUpdateWidget()throws Exception{
 
-        Widget widgetToPutReturn = new Widget(1L, "New Widget", "This is my widget", 1);
-        doReturn(Optional.of(widgetToPutReturn)).when(service).findById(1l);
+
+        Widget widget = new Widget(1L, "Widget", "This is my old widget", 1);
+        doReturn(Optional.of(widget)).when(service).findById(1l);
+
+        Widget widgetToPutReturn = new Widget(1L,"New Widget", "This is my widget",1);
+        doReturn(widgetToPutReturn).when(service).save(any());
 
         // Execute the PUT request
-        mockMvc.perform(put("/rest/widget/{id}", 1L,1)
+        mockMvc.perform(put("/rest/proper/widget/{id}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("if-match","1")
                         .content(asJsonString(widgetToPutReturn)))
 
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -132,7 +137,7 @@ class WidgetRestControllerTest {
     }
 
     @Test
-    @DisplayName("PUT /rest/proper/widget/1 - Not Found")
+    @DisplayName("PUT /rest/widget/1 - Not Found")
     void testPutWidgetByIdNotFound() throws Exception {
         // Setup our mocked service
         doReturn(Optional.empty()).when(service).findById(1l);
